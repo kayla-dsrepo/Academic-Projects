@@ -1,0 +1,24 @@
+Company,Product,perct,severity,complexity,actionability,delay,Final Risk Score
+"BANK OF AMERICA, NATIONAL ASSOCIATION",Checking or savings account,0.35000000000000003,4.142857142857143,3.142857142857143,4.857142857142857,0.0,2.53
+"BANK OF AMERICA, NATIONAL ASSOCIATION",Credit card,0.35000000000000003,3.7142857142857144,3.5714285714285716,4.285714285714286,0.0,2.42
+"BANK OF AMERICA, NATIONAL ASSOCIATION",Credit reporting or other personal consumer reports,0.05,3.0,2.0,2.0,0.0,1.42
+"BANK OF AMERICA, NATIONAL ASSOCIATION","Money transfer, virtual currency, or money service",0.1,3.5,2.5,5.0,0.0,2.23
+CAPITAL ONE FINANCIAL CORPORATION,Checking or savings account,0.4,3.5,3.5,4.875,0.0,2.5
+CAPITAL ONE FINANCIAL CORPORATION,Credit card,0.7000000000000001,3.642857142857143,3.2142857142857144,4.785714285714286,0.0,2.54
+CAPITAL ONE FINANCIAL CORPORATION,Credit reporting or other personal consumer reports,0.8,3.3125,3.3125,4.8125,0.0,2.53
+CAPITAL ONE FINANCIAL CORPORATION,Debt collection,0.05,4.0,3.0,2.0,0.0,1.82
+CAPITAL ONE FINANCIAL CORPORATION,"Money transfer, virtual currency, or money service",0.05,5.0,4.0,5.0,0.0,2.82
+CAPITAL ONE FINANCIAL CORPORATION,Vehicle loan or lease,0.1,2.5,2.0,2.5,0.0,1.43
+DISCOVER BANK,Credit card,0.15,3.6666666666666665,3.3333333333333335,4.666666666666667,0.0,2.38
+DISCOVER BANK,Credit reporting or other personal consumer reports,0.1,3.5,3.5,5.0,0.0,2.43
+DISCOVER BANK,Debt collection,0.1,5.0,3.5,5.0,0.0,2.73
+DISCOVER BANK,Student loan,0.05,4.0,3.0,5.0,0.0,2.42
+JPMORGAN CHASE & CO.,Checking or savings account,0.55,4.0,3.3636363636363638,4.818181818181818,0.0,2.6
+JPMORGAN CHASE & CO.,Credit card,0.4,4.0,3.25,4.875,0.0,2.54
+JPMORGAN CHASE & CO.,"Money transfer, virtual currency, or money service",0.05,2.0,1.0,3.0,0.0,1.22
+JPMORGAN CHASE & CO.,Mortgage,0.05,4.0,3.0,5.0,0.0,2.42
+PNC Bank N.A.,Checking or savings account,0.05,4.0,3.0,5.0,0.0,2.42
+WELLS FARGO & COMPANY,Checking or savings account,0.1,4.0,4.0,5.0,0.0,2.63
+WELLS FARGO & COMPANY,Credit card,0.15,4.333333333333333,4.0,5.0,0.0,2.71
+WELLS FARGO & COMPANY,Credit reporting or other personal consumer reports,0.25,4.0,3.6,5.0,0.0,2.6
+WELLS FARGO & COMPANY,Debt collection,0.05,4.0,3.0,5.0,0.0,2.42
