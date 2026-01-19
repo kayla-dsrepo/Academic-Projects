@@ -1,0 +1,4 @@
+Trading:buy,sell,stock,trade,order,limit,market,index funds
+Retirement:ira,401k,roth,rollover,distribution,beneficiary,statement
+Service:login,password,locked,address,profile,check,statement
+Tax:1099,tax,form,deduction,withholding
