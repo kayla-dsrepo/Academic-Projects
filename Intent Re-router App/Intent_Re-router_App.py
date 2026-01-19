@@ -1,7 +1,3 @@
-
-### **Final Streamlit Code (`Intent_Router_App.py`)**
-
-
 import streamlit as st
 import pandas as pd
 import string
@@ -54,12 +50,13 @@ class RouterModel:
         self._initialize_defaults()
 
     def _initialize_defaults(self):
-        # sets up default desks
+        # sets up default desks including the new irrelevant category
         defaults = {
             "Trading": ["buy", "sell", "stock", "trade", "order", "limit", "market"],
             "Retirement": ["ira", "401k", "roth", "rollover", "distribution", "beneficiary"],
             "Service": ["login", "password", "locked", "address", "profile", "check"],
-            "Tax": ["1099", "tax", "form", "deduction", "withholding"]
+            "Tax": ["1099", "tax", "form", "deduction", "withholding"],
+            "Irrelevant": ["weather", "hello", "lunch", "movie", "sports", "joke"]
         }
         for name, kws in defaults.items():
             desk = FidelityServiceDesk(name)
@@ -74,8 +71,9 @@ class RouterModel:
         tokens = self._preprocess(raw_text)
         scores = {name: desk.score_text(tokens) for name, desk in self.desks.items()}
         
+        # if no keywords match at all, we classify as irrelevant
         if not scores or max(scores.values()) == 0:
-            return "Uncertain", 0
+            return "Irrelevant", 0
         
         best_dept = max(scores, key=scores.get)
         return best_dept, scores[best_dept]
@@ -120,10 +118,9 @@ class DataFrameProcessor:
 
     def __init__(self, router):
         self.router = router
-        self.confidence_threshold = 0.60 
 
-    def process_dataframe(self, df):
-        # processes the dataframe in memory
+    def process_dataframe(self, df, threshold):
+        # processes the dataframe in memory using the user-defined threshold
         try:
             required_cols = ['customer_statement', 'department_routed', 'confidence_level']
             
@@ -136,15 +133,17 @@ class DataFrameProcessor:
             for index, row in df.iterrows():
                 conf = pd.to_numeric(row['confidence_level'], errors='coerce')
                 
-                if conf < self.confidence_threshold:
+                # Compare against the user-selected threshold
+                if conf < threshold:
                     new_dept, score = self.router.predict_department(row['customer_statement'])
                     
-                    if new_dept != "Uncertain":
+                    # check if the reclassification is different from the original
+                    if new_dept != row['department_routed']:
                         final_depts.append(new_dept)
                         indicators.append("Reclassified (Low Conf)")
                     else:
                         final_depts.append(row['department_routed'])
-                        indicators.append("Original (Low Conf - No Rule Match)")
+                        indicators.append("Original (Low Conf - Confirmed)")
                 else:
                     final_depts.append(row['department_routed'])
                     indicators.append("Original")
@@ -163,62 +162,72 @@ class DataFrameProcessor:
 def main():
     st.set_page_config(page_title="Intent Re-router", layout="wide")
 
-    # initialize router in session state so it remembers changes
     if 'router' not in st.session_state:
         st.session_state.router = RouterModel()
     
     if 'processor' not in st.session_state:
         st.session_state.processor = DataFrameProcessor(st.session_state.router)
 
-    # sidebar menu
     st.sidebar.title("App Navigation")
-    
-    # Updated Menu Structure
     option = st.sidebar.radio("Choose an option:", 
         ["1. Upload & Reclassify", "2. Modify Keywords", "3. About"])
 
-    # --- option 1: upload & reclassify ---
     if option == "1. Upload & Reclassify":
         st.title("📂 Intent Re-router: Upload & Reclassify")
         st.markdown("Use this tool to fix **low-confidence** classifications from the third-party vendor.")
 
-        # helper to generate sample csv for the user
-        st.info("Don't have a file? Download a sample below.")
+        st.info("Download the expanded sample file below to test diverse departments and irrelevant text.")
+        
+        # expanded sample data
         sample_data = {
             'customer_statement': [
                 "I need to reset my password immediately", 
                 "i want to buy 100 shares of apple", 
                 "what is the limit for my 401k contribution",
-                "where is the tax form 1099 for last year"
+                "where is the tax form 1099 for last year",
+                "Can you tell me a joke or the weather?",
+                "I want to sell my mutual funds",
+                "How do I start a rollover for my old plan?",
+                "Do you like pizza or movies?"
             ],
-            'department_routed': ["Service", "Service", "Service", "Service"],
-            'confidence_level': [0.95, 0.40, 0.35, 0.45] 
+            'department_routed': ["Service", "Service", "Trading", "Tax", "Service", "Retirement", "Trading", "Service"],
+            'confidence_level': [0.95, 0.40, 0.88, 0.45, 0.30, 0.92, 0.35, 0.25] 
         }
         sample_df = pd.DataFrame(sample_data)
         st.download_button(
-            label="Download Sample CSV",
+            label="Download Expanded Sample CSV",
             data=sample_df.to_csv(index=False).encode('utf-8'),
-            file_name='third_party_sample.csv',
+            file_name='fidelity_sample_v2.csv',
             mime='text/csv',
         )
 
-        # file uploader
+        st.markdown("---")
+        
+        st.subheader("1. Configuration")
+        threshold = st.slider(
+            "Select Low-Confidence Threshold:",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.60,
+            step=0.05,
+            help="Any record with a confidence level BELOW this number will be re-evaluated."
+        )
+
+        st.subheader("2. File Upload")
         uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
         if uploaded_file is not None:
-            # read file
             df = pd.read_csv(uploaded_file)
             st.write("Preview of uploaded data:")
-            st.dataframe(df.head())
+            st.dataframe(df.head(10))
 
             if st.button("Run Reclassification Logic"):
                 with st.spinner('Processing...'):
-                    result_df, status = st.session_state.processor.process_dataframe(df)
+                    result_df, status = st.session_state.processor.process_dataframe(df, threshold)
                 
                 if result_df is not None:
                     st.success("Processing Complete!")
                     
-                    # highlight reclassified rows
                     def highlight_reclassified(row):
                         if "Reclassified" in str(row['processing_status']):
                             return ['background-color: #d4edda'] * len(row)
@@ -226,62 +235,48 @@ def main():
 
                     st.dataframe(result_df.style.apply(highlight_reclassified, axis=1))
 
-                    st.warning("If the new classifications look wrong, go to **Option 2** to update the keywords.")
-
-                    # download button for results
                     csv = result_df.to_csv(index=False).encode('utf-8')
                     st.download_button(
                         label="Download Processed Results",
                         data=csv,
-                        file_name='fidelity_reclassified_results.csv',
+                        file_name='reclassified_results.csv',
                         mime='text/csv',
                     )
                 else:
                     st.error(status)
 
-    # --- option 2: modify keywords ---
     elif option == "2. Modify Keywords":
         st.title("⚙️ Intent Re-router: Modify Keywords")
-        st.markdown("Update the logic used to fix low-confidence tickets.")
-
         router = st.session_state.router
-        
-        # select desk
         desk_names = list(router.desks.keys())
-        selected_desk = st.selectbox("Select Department:", desk_names)
+        selected_desk = st.selectbox("Select Department (including Irrelevant):", desk_names)
 
         if selected_desk:
             current_kws = router.desks[selected_desk].get_keywords()
             st.write(f"**Current Keywords for {selected_desk}:**")
             st.code(", ".join(current_kws))
-
-            # input for new keywords
             new_input = st.text_input("Add new keywords (comma-separated):")
             
             if st.button("Update Keywords"):
                 if new_input:
                     router.modify_keywords(selected_desk, new_input)
-                    st.success(f"Updated {selected_desk}! New keywords saved.")
-                    st.rerun() # refreshes page to show new list
-                else:
-                    st.error("Please enter at least one keyword.")
+                    st.success(f"Updated {selected_desk}!")
+                    st.rerun()
 
-    # --- option 3: about (updated - no emojis) ---
     elif option == "3. About":
         st.title("About Intent Re-router")
-        
         st.markdown("### What is this app?")
         st.write("""
         The **Intent Re-router** is a specialized tool designed to improve data quality in customer service routing. 
         It acts as a 'second opinion' layer for external classification models. When a primary model outputs a 
-        **low-confidence score** for a customer inquiry, this tool intervenes by using a controllable, 
-        keyword-based rule set to reclassify the intent and route it to the correct department (e.g., Trading, Retirement, Tax).
+        **low-confidence score**, this tool re-evaluates the text. If the text does not match any financial keywords, 
+        it is moved to the **Irrelevant** category to keep specialized queues clean.
         """)
 
         st.markdown("### Key Features")
-        st.markdown("- **Automatic Reclassification:** Detects low-confidence predictions and overrides them based on specific business rules.")
-        st.markdown("- **Keyword Adjustment:** Allows supervisors to manually add keywords to departments, instantly adapting the model to new trends.")
-        st.markdown("- **Transparency:** Provides clear feedback on which records were changed and why.")
+        st.markdown("- **Irrelevant Filtering:** Automatically identifies non-financial inquiries to prevent them from reaching specialized desks.")
+        st.markdown("- **Automatic Reclassification:** Overrides third-party predictions using high-precision business rules.")
+        st.markdown("- **Keyword Adjustment:** Allows for real-time updates to the logic.")
 
         st.markdown("---")
         st.markdown("### Student Project Disclaimer")
@@ -289,13 +284,10 @@ def main():
         **Proof of Concept:** This application was developed as a student project to demonstrate technical proficiency in 
         Python programming, Object-Oriented Design, and Streamlit application building.
         
-        **Real-World Context:** We acknowledge that in a large financial institution like Fidelity Investments, 
-        an application like this would **not** be deployed on Streamlit due to enterprise constraints such as:
-        * **Data Security & Privacy:** Strict protocols for handling PII (Personally Identifiable Information).
-        * **Scalability:** The need to process millions of transactions/calls in real-time.
-        * **Infrastructure:** Integration with internal secure cloud environments rather than public web frameworks.
+        **Real-World Context:** I acknowledge that in a large financial institution like Fidelity Investments, 
+        an application like this would **not** be deployed on Streamlit due to enterprise constraints such as 
+        Data Security, Scalability, and Infrastructure requirements.
         """)
 
 if __name__ == "__main__":
     main()
-
