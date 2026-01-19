@@ -1,7 +1,7 @@
 # Sanofi Praluent: Medicaid Drug Utilization Analysis
 
 ## Link to the dashboard for downloads
-[Sanofi Praluent Drug Utilization Analysis.pbix] (https://neoma-my.sharepoint.com/:u:/g/personal/yongqing_wang_25_neoma-bs_com/IQDDCvlau2PlQIgU2X7WhJGgAX4bH7bViRQncTmUqKezv0s?e=YelBo1)
+[Sanofi Praluent Drug Utilization Analysis.pbix](https://neoma-my.sharepoint.com/:u:/g/personal/yongqing_wang_25_neoma-bs_com/IQDDCvlau2PlQIgU2X7WhJGgAX4bH7bViRQncTmUqKezv0s?e=YelBo1)
 
 
 ## Project Overview
