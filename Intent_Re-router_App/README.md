@@ -7,7 +7,7 @@ The **Intent Re-router** is a proof-of-concept Python application designed to en
 
 I developed this tool to act as a logic-based "second opinion" layer. It identifies low-confidence outputs and applies high-precision, adjustable keyword rules to reclassify the intent or filter out irrelevant queries.
 
-[Link to the intent re-router app](https://intentrerouterapppy-qtkwwybbteg6yb9foqkiwg.streamlit.app/)
+Try the [Intent Re-router App](https://intentrerouterapppy-qtkwwybbteg6yb9foqkiwg.streamlit.app/)
 
 ### Key Features
 
